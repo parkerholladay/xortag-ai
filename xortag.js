@@ -1,4 +1,7 @@
-var player = require('./player');
-var host = 'xortag.apphb.com'; //'xortag.apphb.com'; '192.168.1.52';
+'use strict';
 
-player.register(host);
+(function() {
+    var player = require('./player');
+    player.play();
+
+})(module.exports);

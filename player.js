@@ -1,81 +1,31 @@
+'use strict';
+
 (function(player) {
-	var client = require('./client');
+	var game = require('./game');
 	var ai = require('./ai');
 
-	var _player = {};
-
-	player.register = function(host) {
-		client.init(host);
-
-		client.request('register', 0, getPlayer(function() {
-			console.log('');
-			console.log('You successfully registered on host ' + host);
-			console.log('Your player name is ' + _player.name + ' and your id is ' + _player.id);
-			console.log('');
-			move();
-		}));
+	player.play = function() {
+		game.start(move);
 	};
 
-	var move = function() {
-		switch(ai.getMove(_player)) {
+	var move = function(player) {
+		switch(ai.getMove(player)) {
 			case 0:
-				moveUp();
+				game.moveUp(player.id, move(player));
 			break;
 			case 1:
-				moveDown();
+				game.moveDown(player.id, move);
 			break;
 			case 2:
-				moveLeft();
+				game.moveLeft(player.id, move);
 			break;
 			case 3:
-				moveRight();
+				game.moveRight(player.id, move);
 			break;
 			case 4:
-				look();
+				game.look(player.id, move);
 			break;
 		}
-	};
-
-	var moveUp = function() {
-		client.request('moveup', _player.id, getPlayer(move));
-	};
-
-	var moveDown = function() {
-		client.request('movedown', _player.id, getPlayer(move));
-	};
-
-	var moveLeft = function() {
-		client.request('moveleft', _player.id, getPlayer(move));
-	};
-
-	var moveRight = function() {
-		client.request('moveright', _player.id, getPlayer(move));
-	};
-
-	var look = function() {
-		console.log('** looking **');
-		client.request('look', _player.id, getPlayer(move));
-	};
-
-	var getPlayer = function(callback) {
-		return function(response) {
-			var data = '';
-
-			response.on('data', function(chunk) {
-				data += chunk
-			});
-
-			response.on('end', function() {
-				if(data) {
-					_player = JSON.parse(data);
-				}
-				else {
-					_player = {id: _player.id, name: _player.name, isIt: _player.isIt};
-				}
-				console.log(_player);
-				if (callback) callback();
-			});
-		};
 	};
 
 })(module.exports);

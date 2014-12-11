@@ -1,5 +1,7 @@
+'use strict';
+
 (function(ai) {
-	var edgeBuffer = 6;
+	var config = require('./config');
 
 	ai.getMove = function(player) {
 		if(player.isIt || (isOtherPlayerNearby(player) || isPlayerNearEdgeOfMap(player))) {
@@ -11,11 +13,7 @@
 	};
 
 	var isOtherPlayerNearby = function(player) {
-		if(player.players.length > 0) {
-			return true;
-		}
-
-		return false;
+		return player.players.length > 0;
 	}
 
 	var isPlayerNearEdgeOfMap = function(player) {
@@ -26,19 +24,19 @@
 	}
 
 	var isPlayerNearLeftEdge = function(x) {
-		return x - edgeBuffer < 0;
+		return x - config.mapEdgeBuffer < 0;
 	}
 
 	var isPlayerNearRightEdge = function(x, mapWidth) {
-		return x + edgeBuffer >= mapWidth;
+		return x + config.mapEdgeBuffer >= mapWidth;
 	}
 
 	var isPlayerNearTopEdge = function(y) {
-		return y - edgeBuffer < 0;
+		return y - config.mapEdgeBuffer < 0;
 	}
 
 	var isPlayerNearBottomEdge = function(y, mapHeight) {
-		return y + edgeBuffer >= mapHeight;
+		return y + config.mapEdgeBuffer >= mapHeight;
 	}
 
 })(module.exports);

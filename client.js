@@ -1,16 +1,20 @@
+'use strict';
+
 (function(client) {
 	var http = require('http');
+	var config = require('./config');
 
-	var _host = '';
-
-	client.init = function(host) {
-		_host = host;
-	};
+	var _host = config.gameUrl;
 
 	client.request = function(method, id, callback) {
-		setTimeout(function(res) {
-			var req = http.request(getOptions(_host, method, id), callback);
-			req.end();
+		setTimeout(function(response) {
+			try{
+				var request = http.request(getOptions(_host, method, id), callback);
+				request.end();
+			} catch (err) {
+				console.log(err);
+				callback();
+			}
 		}, 1000);
 	};
 
