@@ -2,6 +2,6 @@
 
 (function(config) {
     config.gameUrl = 'xortag.apphb.com'; //192.168.1.132
-    config.mapEdgeBuffer = 6;
+    config.mapEdgeBuffer = 5;
 
 })(module.exports);
