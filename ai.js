@@ -15,58 +15,56 @@
 		if(!player.isIt) {
 			command = moveAwayFromOtherPlayers(player);
 			command = command === look ? moveAwayFromEdges(player) : command;
+		} else {
+			command = Math.floor((Math.random() * 5));
 		}
 
 		return command;
-/*		if(player.isIt || (isOtherPlayerNearby(player) || isPlayerNearEdgeOfMap(player))) {
-			return Math.floor((Math.random() * 4));
-		} else {
-			return 4;
-		}*/
 	};
 
-	var moveAwayFromOtherPlayers = function(player) {
+	function moveAwayFromOtherPlayers(player) {
+		if(isOtherPlayerNearby(player)) {
+			player.players.forEach(function(p) {
+				if(p.x) {}
+			});
+		}
+
 		//return Math.floor((Math.random() * 4));
 		return look;
 	};
 
-	var moveAwayFromEdges = function(player) {
-		if(isPlayerNearTopEdge(player.y)){
+	function moveAwayFromEdges(player) {
+		if(isPlayerNearTopObject(player.y, 0)){
 			return down;
-		} else if(isPlayerNearBottomEdge(player.y, player.mapHeight)) {
+		} else if(isPlayerNearBottomObject(player.y, player.mapHeight)) {
 			return up;
-		} else if(isPlayerNearLeftEdge(player.x)) {
+		} else if(isPlayerNearLeftObject(player.x, 0)) {
 			return right;
-		} else if(isPlayerNearRightEdge(player.x, player.mapWidth)) {
+		} else if(isPlayerNearRightObject(player.x, player.mapWidth)) {
 			return left;
+		} else {
+			return look;
 		}
 	};
 
-	var isOtherPlayerNearby = function(player) {
+	function isOtherPlayerNearby(player) {
 		return player.players.length > 0;
 	};
 
-	var isPlayerNearEdgeOfMap = function(player) {
-		return isPlayerNearLeftEdge(player.x) ||
-			isPlayerNearRightEdge(player.x, player.mapWidth) ||
-			isPlayerNearTopEdge(player.y) ||
-			isPlayerNearBottomEdge(player.y, player.mapHeight);
+	function isPlayerNearRightObject(x, objectX) {
+		return x + config.proximityBuffer >= objectX;
 	};
 
-	var isPlayerNearLeftEdge = function(x) {
-		return x - config.mapEdgeBuffer < 0;
+	function isPlayerNearLeftObject(x, objectX) {
+		return x - config.proximityBuffer < objectX;
 	};
 
-	var isPlayerNearRightEdge = function(x, mapWidth) {
-		return x + config.mapEdgeBuffer >= mapWidth;
+	function isPlayerNearBottomObject(y, objectY) {
+		return y + config.proximityBuffer >= objectY;
 	};
 
-	var isPlayerNearTopEdge = function(y) {
-		return y - config.mapEdgeBuffer < 0;
-	};
-
-	var isPlayerNearBottomEdge = function(y, mapHeight) {
-		return y + config.mapEdgeBuffer >= mapHeight;
+	function isPlayerNearTopObject(y) {
+		return y - config.proximityBuffer < 0;
 	};
 
 })(module.exports);

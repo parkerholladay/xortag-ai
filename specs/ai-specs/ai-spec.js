@@ -1,4 +1,4 @@
-var ai = require('./ai');
+var ai = require('../../ai');
 var up = 0;
 var down = 1;
 var left =2;
@@ -8,11 +8,11 @@ var look = 4;
 describe('get next move', function() {
     var player = {};
 
-    beforeEach(function() {
-        player = { id:1, name:'foo', mapWidth:20, mapHeight:20, x:0, y:0, players:[], isIt:false };
-    });
+    describe('when player is not it', function () {
+        beforeEach(function () {
+            player = {id: 1, name: 'foo', mapWidth: 20, mapHeight: 20, x: 0, y: 0, players: [], isIt: false};
+        });
 
-    describe('when player is not it', function() {
         describe('when player is near the top edge of the map', function () {
             it('should move down', function () {
                 expect(ai.getNextMove(player)).toBe(down);
@@ -76,6 +76,31 @@ describe('get next move', function() {
                 expect(ai.getNextMove(player)).toBe(left);
             });
 
+        });
+
+        describe('when other players are nearby', function () {
+            beforeEach(function () {
+                player = {id: 1, name: 'foo', mapWidth: 20, mapHeight: 20, x: 9, y: 9, players: [], isIt: false};
+            });
+
+            describe('when other player is above', function () {
+                beforeEach(function () {
+                    player.players = [{isIt: false, x: 9, y: 5}];
+                });
+
+                it('should move down', function () {
+                    expect(ai.getNextMove(player)).toBe(down);
+                });
+
+            });
+
+        });
+
+    });
+
+    describe('when player is it', function () {
+        beforeEach(function () {
+            player = {id: 1, name: 'foo', mapWidth: 20, mapHeight: 20, x: 9, y: 9, players: [], isIt: true};
         });
 
     });
