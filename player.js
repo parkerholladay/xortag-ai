@@ -8,7 +8,7 @@
 		game.start(move);
 	};
 
-	function move(player) {
+	var move = function (player) {
 		switch(ai.getNextMove(player)) {
 			case 0:
 				game.moveUp(player.id, move);

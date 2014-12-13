@@ -4,13 +4,12 @@
     var client = require('./client');
     var config = require('./config');
 
-    var _player = getDefaultPlayer();
+    var _player = getDefaultPlayer;
 
     game.start = function (callback) {
         client.request('register', 0, getPlayer(function (player) {
             console.log('');
             console.log('You successfully registered at ' + config.gameUrl);
-            console.log('');
             console.log('');
             console.log('Your player name is ' + player.name + '; id: ' + player.id);
             console.log('');
@@ -38,32 +37,34 @@
         sendRequest('look', id, callback);
     };
 
-    function sendRequest(command, id, callback) {
+    var sendRequest = function (command, id, callback) {
         console.log('** ' + command + ' **');
-        client.request(command, id, getPlayer(callback));
+        setTimeout(function () {
+            client.request(command, id, getPlayer(callback));
+        }, 1000);
     };
 
-    function getPlayer(callback) {
+    var getPlayer = function (callback) {
         return function (response) {
             var data = '';
 
-            response.on('data', function (chunk) {
-                data += chunk
-            });
+            response
+                .on('data', function (chunk) {
+                    data += chunk
+                })
+                .on('end', function () {
+                    if (data) {
+                        _player = JSON.parse(data);
+                    }
+                    else {
+                        console.log('');
+                        console.log('No response. Player not moved');
+                        console.log('');
+                        _player = getDefaultPlayer();
+                    }
 
-            response.on('end', function () {
-                if (data) {
-                    _player = JSON.parse(data);
-                }
-                else {
-                    console.log('');
-                    console.log('No response. Player not moved');
-                    console.log('');
-                    _player = {id: _player.id, name: _player.name, isIt: _player.isIt, players: []};
-                }
-
-                if (callback) callback(_player);
-            });
+                    if (callback) callback(_player);
+                });
         };
     };
 

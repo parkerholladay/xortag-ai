@@ -4,19 +4,19 @@
 	var http = require('http');
 	var config = require('./config');
 
-	var _host = config.gameUrl;
-
-	client.request = function(method, id, callback) {
-		setTimeout(function(response) {
-			var request = http.request(getOptions(_host, method, id), callback);
-			request.end();
-		}, 1000);
+	client.request = function (method, id, callback) {
+		http.request(getOptions(config.gameUrl, method, id), callback)
+			.on('error', function (e) {
+				console.log('Error: ' + e.message);
+				callback();
+			}).end();
 	};
 
-	function getOptions(host, method, id) {
+	var getOptions = function (host, method, id) {
 		return {
-			host: host,
-			path: '/' + method + '/' + id
+			hostname: host,
+			path: '/' + method + '/' + id,
+			method: 'GET'
 		};
 	};
 
