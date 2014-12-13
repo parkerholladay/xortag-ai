@@ -85,11 +85,92 @@ describe('get next move', function() {
 
             describe('when other player is above', function () {
                 beforeEach(function () {
-                    player.players = [{isIt: false, x: 9, y: 5}];
+                    player.players = [{isIt: false, x: 9, y: 6}];
                 });
 
                 it('should move down', function () {
                     expect(ai.getNextMove(player)).toBe(down);
+                });
+
+                describe('when player is also near the left edge of the map', function () {
+                    beforeEach(function () {
+                        player.y = 17;
+                        player.players = [{isIt: false, x: 9, y: 14}];
+                    });
+
+                    it('should move up', function () {
+                        expect(ai.getNextMove(player)).toBe(up);
+                    });
+
+                });
+
+            });
+
+            describe('when other player is below', function () {
+                beforeEach(function () {
+                    player.players = [{isIt: false, x: 9, y: 12}];
+                });
+
+                it('should move up', function () {
+                    expect(ai.getNextMove(player)).toBe(up);
+                });
+
+                describe('when player is also near the top edge of the map', function () {
+                    beforeEach(function () {
+                        player.y = 3;
+                        player.players = [{isIt: false, x: 9, y: 6}];
+                    });
+
+                    it('should move down', function () {
+                        expect(ai.getNextMove(player)).toBe(down);
+                    });
+
+                });
+
+            });
+
+            describe('when other player is to the left', function () {
+                beforeEach(function () {
+                    player.players = [{isIt: false, x: 6, y: 9}];
+                });
+
+                it('should move right', function () {
+                    expect(ai.getNextMove(player)).toBe(right);
+                });
+
+                describe('when player is also near the right edge of the map', function () {
+                    beforeEach(function () {
+                        player.x = 17;
+                        player.players = [{isIt: false, x: 14, y: 9}];
+                    });
+
+                    it('should move left', function () {
+                        expect(ai.getNextMove(player)).toBe(left);
+                    });
+
+                });
+
+            });
+
+            describe('when other player is to the right', function () {
+                beforeEach(function () {
+                    player.players = [{isIt: false, x: 12, y: 9}];
+                });
+
+                it('should move left', function () {
+                    expect(ai.getNextMove(player)).toBe(left);
+                });
+
+                describe('when player is also near the left edge of the map', function () {
+                    beforeEach(function () {
+                        player.x = 3;
+                        player.players = [{isIt: false, x: 6, y: 9}];
+                    });
+
+                    it('should move right', function () {
+                        expect(ai.getNextMove(player)).toBe(right);
+                    });
+
                 });
 
             });

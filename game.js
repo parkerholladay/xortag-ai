@@ -4,17 +4,17 @@
     var client = require('./client');
     var config = require('./config');
 
-    var _player = getDefaultPlayer;
+    var _player = getDefaultPlayer();
 
     game.start = function (callback) {
-        client.request('register', 0, getPlayer(function (player) {
+        sendRequest('register', _player.id, function (player) {
             console.log('');
             console.log('You successfully registered at ' + config.gameUrl);
             console.log('');
             console.log('Your player name is ' + player.name + '; id: ' + player.id);
             console.log('');
             callback(player);
-        }));
+        });
     };
 
     game.moveUp = function (id, callback) {
@@ -38,7 +38,7 @@
     };
 
     var sendRequest = function (command, id, callback) {
-        console.log('** ' + command + ' **');
+        console.log('id: ' + id + ' **' + command);
         setTimeout(function () {
             client.request(command, id, getPlayer(callback));
         }, 1000);
@@ -57,9 +57,7 @@
                         _player = JSON.parse(data);
                     }
                     else {
-                        console.log('');
                         console.log('No response. Player not moved');
-                        console.log('');
                         _player = getDefaultPlayer();
                     }
 
