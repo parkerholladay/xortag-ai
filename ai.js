@@ -13,8 +13,9 @@
 		var command = look;
 
 		if (!player.isIt) {
-			var obstacle = getClosestObject(player, true);
-			command = moveAwayFromObstacle(player, obstacle);
+			var obstacles = getClosestObject(player, true);
+			console.log(JSON.stringify(player), obstacles);
+			command = moveAwayFromObstacle(player, obstacles.player, obstacles.blocked);
 		} else {
 			command = Math.floor((Math.random() * 4));
 		}
@@ -23,42 +24,65 @@
 	};
 
 	var getClosestObject = function (player) {
-		var closestObject = {};
+		var isClosestFound = false;
 		var closestX = player.mapWidth;
 		var closestY = player.mapHeight;
 
-		var nearby = getNearbyObjects(player, true);
-		nearby.forEach(function (n) {
-			var absoluteX = getAbsoluteDistance(player.x, n.x);
-			var absoluteY = getAbsoluteDistance(player.y, n.y);
-			if ((absoluteX < closestX && absoluteY <= closestY) || (absoluteY < closestY && absoluteX <= closestY)){
-				closestX = absoluteX;
-				closestY = absoluteY;
-				closestObject = n;
+		var obstacle = {player: player.players.first(isPlayerIt), blocked: []};
+		isClosestFound = obstacle.player;
+
+		var obstacles = getVisibleObstaclesOnMap(player, true);
+		obstacles.forEach(function (o) {
+			var deltas = getDeltas(player, o);
+			getBlockedDirections(deltas, player, o, obstacle.blocked);
+
+			if (!isClosestFound && (deltas.x + deltas.y < closestX + closestY)) {
+				closestX = deltas.x;
+				closestY = deltas.y;
+				obstacle.player = o;
 			}
 		});
 
-		return closestObject;
+		return obstacle;
 	};
 
-	var getNearbyObjects = function (player, includeBorders) {
-		var objects = player.players.slice(0);
-		if (includeBorders) {
+	var isPlayerIt = function(player) {
+		return player.isIt;
+	};
 
-			objects.push({x: player.x, y: -1});
-			objects.push({x: player.x, y: player.mapHeight});
-			objects.push({x: -1, y: player.y});
-			objects.push({x: player.mapWidth, y: player.y});
+	var getBlockedDirections = function (deltas, player, obstacle, blocked) {
+		if (deltas.x === 1 && deltas.y === 0) {
+			if (player.x - obstacle.x > 0) {
+				blocked.push(left);
+			} else {
+				blocked.push(right);
+			}
+		} else if (deltas.y === 1 && deltas.x === 0) {
+			if(player.y - obstacle.y > 0) {
+				blocked.push(up);
+			} else {
+				blocked.push(down);
+			}
+		}
+	};
+
+	var getVisibleObstaclesOnMap = function (player, includeBorders) {
+		var obstacles = player.players.slice(0);
+		if (includeBorders) {
+			if (player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: -1});
+			if (player.mapHeight - player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: player.mapHeight});
+			if (player.x <= config.proximityBuffer) obstacles.push({x: -1, y: player.y});
+			if (player.mapWidth - player.x <= config.proximityBuffer) obstacles.push({x: player.mapWidth, y: player.y});
 		}
 
-		return objects;
+		return obstacles;
 	};
 
-	function getAbsoluteDistance(dot, objectDot) {
-		return Math.abs(dot - objectDot);
+	function getDeltas(player, obstacle) {
+		return {x: Math.abs(player.x - obstacle.x), y: Math.abs(player.y - obstacle.y)};
 	}
 
-	var moveAwayFromObstacle = function (player, obstacle) {
+	var moveAwayFromObstacle = function (player, obstacle, blocked) {
 		if (isObstacleAbovePlayer(player.y, obstacle.y)) {
 			return down;
 		} else if (isObstacleBelowPlayer(player.y, obstacle.y)) {
@@ -68,22 +92,44 @@
 		} else if (isObstacleToTheRightOfPlayer(player.x, obstacle.x)) {
 			return left;
 		}
+
+		return look;
 	};
 
-	var isObstacleToTheRightOfPlayer = function (x, objectX) {
-		return x < objectX && x + config.proximityBuffer >= objectX;
+	var isObstacleToTheRightOfPlayer = function (x, obstacleX) {
+		return x < obstacleX && x + config.proximityBuffer >= obstacleX;
 	};
 
-	var isObstacleToTheLeftOfPlayer = function (x, objectX) {
-		return x > objectX && x - config.proximityBuffer <= objectX;
+	var isObstacleToTheLeftOfPlayer = function (x, obstacleX) {
+		return x > obstacleX && x - config.proximityBuffer <= obstacleX;
 	};
 
-	var isObstacleBelowPlayer = function (y, objectY) {
-		return y < objectY && y + config.proximityBuffer >= objectY;
+	var isObstacleBelowPlayer = function (y, obstacleY) {
+		return y < obstacleY && y + config.proximityBuffer >= obstacleY;
 	};
 
-	var isObstacleAbovePlayer = function (y, objectY) {
-		return y > objectY && y - config.proximityBuffer <= objectY;
+	var isObstacleAbovePlayer = function (y, obstacleY) {
+		return y > obstacleY && y - config.proximityBuffer <= obstacleY;
 	};
+
+	var canMove = function (direction, blocked) {
+		return !blocked.contains(direction);
+	};
+
+	Array.prototype.first = function(selector) {
+		if(typeof selector !== 'function') {
+			return undefined;
+		}
+
+		for (var i = 0; i < this.length; i++) {
+			if (i in this && selector(this[i])) return this[i];
+		}
+
+		return undefined;
+	};
+
+	Array.prototype.contains = function(selector) {
+		return this.indexOf(selector) >= 0;
+	}
 
 })(module.exports);

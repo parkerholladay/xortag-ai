@@ -1,4 +1,4 @@
-var ai = require('../../ai');
+var ai = require('../ai');
 var up = 0;
 var down = 1;
 var left =2;
@@ -74,7 +74,7 @@ describe('get next move', function() {
         });
 
         describe('when player is near the left edge of the map', function () {
-            beforeEach(function() {
+            beforeEach(function () {
                 player.x = 0;
             });
 
@@ -86,8 +86,8 @@ describe('get next move', function() {
         });
 
         describe('when player is near the right edge of the map', function () {
-            beforeEach(function() {
-                player.x = player.mapWidth -1;
+            beforeEach(function () {
+                player.x = player.mapWidth - 1;
             });
 
             it('should move left', function () {
@@ -97,7 +97,7 @@ describe('get next move', function() {
 
         });
 
-        describe('when other players are nearby', function () {
+        describe('when another player is nearby', function () {
             beforeEach(function () {
                 player.x = 9;
                 player.y = 9;
@@ -191,6 +191,63 @@ describe('get next move', function() {
                         expect(ai.getNextMove(player)).toBe(right);
                     });
 
+                });
+
+            });
+
+        });
+
+        describe('when multiple players are nearby', function () {
+            beforeEach(function () {
+                player.x = 9;
+                player.y = 9;
+            });
+
+            it('should move away from the nearest player', function () {
+                player.players = [{x: 5, y: 8}, {x: 11, y: 11}];
+                expect(ai.getNextMove(player)).toBe(up);
+
+                player.players = [{x: 8, y: 8}, {x: 10, y: 10}];
+                expect(ai.getNextMove(player)).toBe(down);
+
+                player.players = [{x: 8, y: 9}, {x: 10, y: 10}];
+                expect(ai.getNextMove(player)).toBe(right);
+
+                player.players = [{x: 10, y: 9}, {x: 8, y: 10}];
+                expect(ai.getNextMove(player)).toBe(left);
+            });
+
+
+            describe('when other player is it', function () {
+                it('should move away from it player first', function () {
+                    player.players = [{x: 9, y: 7}, {isIt: true, x: 9, y: 14}];
+                    expect(ai.getNextMove(player)).toBe(up);
+
+                    player.players = [{x: 9, y: 11}, {isIt: true, x: 9, y: 4}];
+                    expect(ai.getNextMove(player)).toBe(down);
+
+                    player.players = [{x: 11, y: 9}, {isIt: true, x: 4, y: 9}];
+                    expect(ai.getNextMove(player)).toBe(right);
+
+                    player.players = [{x: 7, y: 9}, {isIt: true, x: 14, y: 9}];
+                    expect(ai.getNextMove(player)).toBe(left);
+                });
+
+            });
+
+            describe('when an obstacle is in the way', function () {
+                it('should move in the next best way', function () {
+                    player.players = [{x: 9, y: 8}, {isIt: true, x: 9, y: 14}];
+                    expect(ai.getNextMove(player)).toBe(right);
+
+                    player.players = [{x: 9, y: 10}, {isIt: true, x: 9, y: 4}];
+                    expect(ai.getNextMove(player)).toBe(right);
+
+                    player.players = [{x: 10, y: 9}, {isIt: true, x: 4, y: 9}];
+                    expect(ai.getNextMove(player)).toBe(up);
+
+                    player.players = [{x: 8, y: 9}, {isIt: true, x: 14, y: 9}];
+                    expect(ai.getNextMove(player)).toBe(up);
                 });
 
             });
