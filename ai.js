@@ -14,8 +14,8 @@
 
 		if (!player.isIt) {
 			var obstacles = getClosestObject(player, true);
-			console.log(JSON.stringify(player), obstacles);
-			command = moveAwayFromObstacle(player, obstacles.player, obstacles.blocked);
+			var commands = getPossibleMoves(player, obstacles);
+			command = moveAwayFromObstacle(player, obstacles.player, commands);
 		} else {
 			command = Math.floor((Math.random() * 4));
 		}
@@ -46,7 +46,7 @@
 		return obstacle;
 	};
 
-	var isPlayerIt = function(player) {
+	var isPlayerIt = function (player) {
 		return player.isIt;
 	};
 
@@ -58,7 +58,7 @@
 				blocked.push(right);
 			}
 		} else if (deltas.y === 1 && deltas.x === 0) {
-			if(player.y - obstacle.y > 0) {
+			if (player.y - obstacle.y > 0) {
 				blocked.push(up);
 			} else {
 				blocked.push(down);
@@ -70,7 +70,10 @@
 		var obstacles = player.players.slice(0);
 		if (includeBorders) {
 			if (player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: -1});
-			if (player.mapHeight - player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: player.mapHeight});
+			if (player.mapHeight - player.y <= config.proximityBuffer) obstacles.push({
+				x: player.x,
+				y: player.mapHeight
+			});
 			if (player.x <= config.proximityBuffer) obstacles.push({x: -1, y: player.y});
 			if (player.mapWidth - player.x <= config.proximityBuffer) obstacles.push({x: player.mapWidth, y: player.y});
 		}
@@ -82,42 +85,64 @@
 		return {x: Math.abs(player.x - obstacle.x), y: Math.abs(player.y - obstacle.y)};
 	}
 
-	var moveAwayFromObstacle = function (player, obstacle, blocked) {
-		if (isObstacleAbovePlayer(player.y, obstacle.y)) {
+	var getPossibleMoves = function (player, obstacles) {
+		var commands = [up, down, left, right, look];
+
+		if (isObstacleAbovePlayer(player.y, obstacles.player.y) || isBlocked(up, obstacles.blocked)) {
+			commands.remove(up);
+		}
+		if (isObstacleBelowPlayer(player.y, obstacles.player.y) || isBlocked(down, obstacles.blocked)) {
+			commands.remove(down);
+		}
+		if (isObstacleToTheLeftOfPlayer(player.x, obstacles.player.x) || isBlocked(left, obstacles.blocked)) {
+			commands.remove(left);
+		}
+		if (isObstacleToTheRightOfPlayer(player.x, obstacles.player.x) || isBlocked(right, obstacles.blocked)) {
+			commands.remove(right);
+		}
+
+		return commands;
+	};
+
+	var moveAwayFromObstacle = function (player, obstacle, commands) {
+		if (isObstacleAbovePlayer(player.y, obstacle.y) && commands.contains(down)) {
 			return down;
-		} else if (isObstacleBelowPlayer(player.y, obstacle.y)) {
+		}
+		if (isObstacleBelowPlayer(player.y, obstacle.y) && commands.contains(up)) {
 			return up;
-		} else if (isObstacleToTheLeftOfPlayer(player.x, obstacle.x)) {
+		}
+		if (isObstacleToTheLeftOfPlayer(player.x, obstacle.x) && commands.contains(right)) {
 			return right;
-		} else if (isObstacleToTheRightOfPlayer(player.x, obstacle.x)) {
+		}
+		if (isObstacleToTheRightOfPlayer(player.x, obstacle.x) && commands.contains(left)) {
 			return left;
 		}
 
-		return look;
+		return commands[0];
 	};
 
 	var isObstacleToTheRightOfPlayer = function (x, obstacleX) {
-		return x < obstacleX && x + config.proximityBuffer >= obstacleX;
+		return x < obstacleX;
 	};
 
 	var isObstacleToTheLeftOfPlayer = function (x, obstacleX) {
-		return x > obstacleX && x - config.proximityBuffer <= obstacleX;
+		return x > obstacleX;
 	};
 
 	var isObstacleBelowPlayer = function (y, obstacleY) {
-		return y < obstacleY && y + config.proximityBuffer >= obstacleY;
+		return y < obstacleY;
 	};
 
 	var isObstacleAbovePlayer = function (y, obstacleY) {
-		return y > obstacleY && y - config.proximityBuffer <= obstacleY;
+		return y > obstacleY;
 	};
 
-	var canMove = function (direction, blocked) {
-		return !blocked.contains(direction);
+	var isBlocked = function (direction, blocked) {
+		return blocked.contains(direction);
 	};
 
-	Array.prototype.first = function(selector) {
-		if(typeof selector !== 'function') {
+	Array.prototype.first = function (selector) {
+		if (typeof selector !== 'function') {
 			return undefined;
 		}
 
@@ -128,8 +153,15 @@
 		return undefined;
 	};
 
-	Array.prototype.contains = function(selector) {
+	Array.prototype.contains = function (selector) {
 		return this.indexOf(selector) >= 0;
-	}
+	};
+
+	Array.prototype.remove = function (selector) {
+		var index = this.indexOf(selector);
+		if (index !== -1) {
+			this.splice(index, 1);
+		}
+	};
 
 })(module.exports);
