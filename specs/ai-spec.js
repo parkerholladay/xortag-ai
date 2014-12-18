@@ -17,6 +17,13 @@ describe('get next move', function() {
             player.isIt = false;
         });
 
+        describe('when no players are nearby', function () {
+            it('should look or move at random', function () {
+                expect(ai.getNextMove(player)).not.toBeGreaterThan(look);
+            });
+
+        });
+
         describe('when player is near the top edge of the map', function () {
             beforeEach(function () {
                 player.y = 0;
@@ -264,7 +271,9 @@ describe('get next move', function() {
 
     describe('when player is it', function () {
         beforeEach(function () {
-            player = {id: 1, name: 'foo', mapWidth: 20, mapHeight: 20, x: 9, y: 9, players: [], isIt: true};
+            player.isIt = true;
+            player.x = 9;
+            player.y = 9;
         });
 
         describe('when no players are nearby', function () {
@@ -274,8 +283,54 @@ describe('get next move', function() {
 
         });
 
-        describe('when a player is nearby', function () {
-            it('should follow the player', function () {
+        describe('when another player is nearby', function () {
+            var player2;
+            beforeEach(function () {
+                player2 = {isIt: false};
+                player.players = [player2];
+            });
+
+            describe('when other player is above', function () {
+                it('should move up', function () {
+                    player2.x = 9;
+                    player2.y = 4;
+                    expect(ai.getNextMove(player)).toBe(up);
+
+                    player2.x = 7;
+                    player2.y = 4;
+                    expect(ai.getNextMove(player)).toBe(up);
+                });
+
+            });
+
+            describe('when other player is below', function () {
+                it('should move down', function () {
+                    player2.x = 9;
+                    player2.y = 14;
+                    expect(ai.getNextMove(player)).toBe(down);
+
+                    player2.x = 7;
+                    player2.y = 14;
+                    expect(ai.getNextMove(player)).toBe(down);
+                });
+
+            });
+
+            describe('when other player is to the left', function () {
+                it('should move down', function () {
+                    player2.x = 4;
+                    player2.y = 9;
+                    expect(ai.getNextMove(player)).toBe(left);
+                });
+
+            });
+
+            describe('when other player is to the right', function () {
+                it('should move down', function () {
+                    player2.x = 14;
+                    player2.y = 9;
+                    expect(ai.getNextMove(player)).toBe(right);
+                });
 
             });
 
