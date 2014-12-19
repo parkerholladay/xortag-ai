@@ -9,9 +9,10 @@
     game.start = function (callback) {
         sendRequest('register', _player.id, function (player) {
             console.log('');
-            console.log('You successfully registered at ' + config.gameUrl);
+            console.log('You successfully registered at', config.gameUrl);
             console.log('');
-            console.log('Your player name is ' + player.name + '; id: ' + player.id);
+            console.log('Your player name is', player.name, 'id:', player.id);
+            console.log('You are', player.isIt ? 'it' : 'not it');
             console.log('');
             callback(player);
         });
@@ -38,7 +39,7 @@
     };
 
     var sendRequest = function (command, id, callback) {
-        console.log('id: ' + id + ' **' + command);
+        console.log('id:', id, 'command:', command);
         setTimeout(function () {
             client.request(command, id, getPlayer(callback));
         }, 1000);

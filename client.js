@@ -7,7 +7,7 @@
 	client.request = function (method, id, callback) {
 		http.request(getOptions(config.gameUrl, method, id), callback)
 			.on('error', function (e) {
-				console.log('Error: ' + e.message);
+				console.log('Error:', e.message);
 				callback();
 			}).end();
 	};
