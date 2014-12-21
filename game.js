@@ -4,48 +4,37 @@
     var client = require('./client');
     var config = require('./config');
 
-    var _player = getDefaultPlayer();
-
-    game.start = function (callback) {
-        sendRequest('register', _player.id, function (player) {
-            console.log('');
-            console.log('You successfully registered at', config.gameUrl);
-            console.log('');
-            console.log('Your player name is', player.name, 'id:', player.id);
-            console.log('You are', player.isIt ? 'it' : 'not it');
-            console.log('');
-            callback(player);
-        });
+    game.register = function (player, callback) {
+        executeCommand('register', player, callback);
     };
 
-    game.moveUp = function (id, callback) {
-        sendRequest('moveUp', id, callback);
+    game.moveUp = function (player, callback) {
+        executeCommand('moveUp', player, callback);
     };
 
-    game.moveDown = function (id, callback) {
-        sendRequest('moveDown', id, callback);
+    game.moveDown = function (player, callback) {
+        executeCommand('moveDown', player, callback);
     };
 
-    game.moveLeft = function (id, callback) {
-        sendRequest('moveLeft', id, callback);
+    game.moveLeft = function (player, callback) {
+        executeCommand('moveLeft', player, callback);
     };
 
-    game.moveRight = function (id, callback) {
-        sendRequest('moveRight', id, callback);
+    game.moveRight = function (player, callback) {
+        executeCommand('moveRight', player, callback);
     };
 
-    game.look = function (id, callback) {
-        sendRequest('look', id, callback);
+    game.look = function (player, callback) {
+        executeCommand('look', player, callback);
     };
 
-    var sendRequest = function (command, id, callback) {
-        console.log('id:', id, 'command:', command);
+    var executeCommand = function (command, player, callback) {
         setTimeout(function () {
-            client.request(command, id, getPlayer(callback));
+            client.request(command, player.id, handleResponse(callback));
         }, 1000);
     };
 
-    var getPlayer = function (callback) {
+    var handleResponse = function (callback) {
         return function (response) {
             var data = '';
 
@@ -54,26 +43,9 @@
                     data += chunk
                 })
                 .on('end', function () {
-                    if (data) {
-                        _player = JSON.parse(data);
-                    }
-                    else {
-                        console.log('No response. Player not moved');
-                        _player = getDefaultPlayer();
-                    }
-
-                    if (callback) callback(_player);
+                    callback(data);
                 });
         };
     };
-
-    function getDefaultPlayer() {
-        return {
-            id: _player ? _player.id : 0,
-            name: _player ? _player.name : '',
-            isIt: _player ? _player.isIt : false,
-            players: []
-        };
-    }
 
 })(module.exports);

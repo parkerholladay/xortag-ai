@@ -1,12 +1,6 @@
 'use strict';
 
 (function(ai) {
-	var up = 0;
-	var down = 1;
-	var left = 2;
-	var right = 3;
-	var look = 4;
-
 	var config = require('./config');
 
 	ai.getNextMove = function (player) {
@@ -24,7 +18,13 @@
 		var closestX = player.mapWidth;
 		var closestY = player.mapHeight;
 
-		var obstacle = {player: player.players.first(isPlayerIt), blocked: []};
+		var obstacle = {
+			player: player.players.first(function (p) {
+				return p.isIt;
+			}),
+			blocked: []
+		};
+
 		if (!player.isIt && obstacle.player) {
 			isClosestFound = true;
 		} else {
@@ -46,22 +46,20 @@
 		return obstacle;
 	};
 
-	var isPlayerIt = function (player) {
-		return player.isIt;
-	};
-
 	var getBlockedDirections = function (deltas, player, obstacle, blocked) {
-		if (deltas.x === 1 && deltas.y === 0) {
-			if (player.x - obstacle.x > 0) {
-				blocked.push(left);
-			} else {
-				blocked.push(right);
-			}
-		} else if (deltas.y === 1 && deltas.x === 0) {
-			if (player.y - obstacle.y > 0) {
-				blocked.push(up);
-			} else {
-				blocked.push(down);
+		if (!player.isIt) {
+			if (deltas.x === 1 && deltas.y === 0) {
+				if (player.x - obstacle.x > 0) {
+					blocked.push(config.commands.left);
+				} else {
+					blocked.push(config.commands.right);
+				}
+			} else if (deltas.y === 1 && deltas.x === 0) {
+				if (player.y - obstacle.y > 0) {
+					blocked.push(config.commands.up);
+				} else {
+					blocked.push(config.commands.down);
+				}
 			}
 		}
 	};
@@ -69,76 +67,73 @@
 	var getVisibleObstaclesOnMap = function (player, includeBorders) {
 		var obstacles = player.players.slice(0);
 		if (includeBorders) {
-			if (player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: -1});
-			if (player.mapHeight - player.y <= config.proximityBuffer) obstacles.push({
-				x: player.x,
-				y: player.mapHeight
-			});
-			if (player.x <= config.proximityBuffer) obstacles.push({x: -1, y: player.y});
-			if (player.mapWidth - player.x <= config.proximityBuffer) obstacles.push({x: player.mapWidth, y: player.y});
+			if (player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: -1, isBorder: true});
+			if (player.mapHeight - player.y <= config.proximityBuffer) obstacles.push({x: player.x, y: player.mapHeight, isBorder: true});
+			if (player.x <= config.proximityBuffer) obstacles.push({x: -1, y: player.y, isBorder: true});
+			if (player.mapWidth - player.x <= config.proximityBuffer) obstacles.push({x: player.mapWidth, y: player.y, isBorder: true});
 		}
 
 		return obstacles;
 	};
 
 	function getDeltas(player, obstacle) {
-		return {x: Math.abs(player.x - obstacle.x), y: Math.abs(player.y - obstacle.y)};
+		return player.isIt && obstacle.isBorder ? {x: player.mapWidth, y: player.mapHeight} : {x: Math.abs(player.x - obstacle.x), y: Math.abs(player.y - obstacle.y)};
 	}
 
 	var getPossibleMoves = function (player, obstacles) {
-		var commands = [up, down, left, right, look];
+		var commands = Object.keys(config.commands).map(function (key) {
+			return config.commands[key];
+		});
 
-		if ((!player.isIt && isObstacleAbovePlayer(player.y, obstacles.player.y)) || isBlocked(up, obstacles.blocked)) {
-			commands.remove(up);
+		if ((!player.isIt && isObstacleAbovePlayer(player.y, obstacles.player.y)) || isBlocked(config.commands.up, obstacles.blocked)) {
+			commands.remove(config.commands.up);
 		}
-		if ((!player.isIt && isObstacleBelowPlayer(player.y, obstacles.player.y)) || isBlocked(down, obstacles.blocked)) {
-			commands.remove(down);
+		if ((!player.isIt && isObstacleBelowPlayer(player.y, obstacles.player.y)) || isBlocked(config.commands.down, obstacles.blocked)) {
+			commands.remove(config.commands.down);
 		}
-		if ((!player.isIt && isObstacleToTheLeftOfPlayer(player.x, obstacles.player.x)) || isBlocked(left, obstacles.blocked)) {
-			commands.remove(left);
+		if ((!player.isIt && isObstacleToTheLeftOfPlayer(player.x, obstacles.player.x)) || isBlocked(config.commands.left, obstacles.blocked)) {
+			commands.remove(config.commands.left);
 		}
-		if ((!player.isIt && isObstacleToTheRightOfPlayer(player.x, obstacles.player.x)) || isBlocked(right, obstacles.blocked)) {
-			commands.remove(right);
+		if ((!player.isIt && isObstacleToTheRightOfPlayer(player.x, obstacles.player.x)) || isBlocked(config.commands.right, obstacles.blocked)) {
+			commands.remove(config.commands.right);
 		}
 		if (player.isIt) {
-			commands.remove(look);
+			commands.remove(config.commands.look);
 		}
 
 		return commands;
 	};
 
 	var moveAwayFromObstacle = function (player, obstacle, commands) {
-		if (isObstacleAbovePlayer(player.y, obstacle.y) && commands.contains(down)) {
-			return down;
+		if (obstacle) {
+			if (isObstacleAbovePlayer(player.y, obstacle.y) && commands.contains(config.commands.down)) {
+				return config.commands.down;
+			} else if (isObstacleBelowPlayer(player.y, obstacle.y) && commands.contains(config.commands.up)) {
+				return config.commands.up;
+			} else if (isObstacleToTheLeftOfPlayer(player.x, obstacle.x) && commands.contains(config.commands.right)) {
+				return config.commands.right;
+			} else if (isObstacleToTheRightOfPlayer(player.x, obstacle.x) && commands.contains(config.commands.left)) {
+				return config.commands.left;
+			} else {
+				return commands[0];
+			}
+		} else {
+			return getRandomMove(commands);
 		}
-		if (isObstacleBelowPlayer(player.y, obstacle.y) && commands.contains(up)) {
-			return up;
-		}
-		if (isObstacleToTheLeftOfPlayer(player.x, obstacle.x) && commands.contains(right)) {
-			return right;
-		}
-		if (isObstacleToTheRightOfPlayer(player.x, obstacle.x) && commands.contains(left)) {
-			return left;
-		}
-
-		return commands[0];
 	};
 
-	var moveTowardPlayer = function (player, obstacle, commands) {
-		if (isObstacleAbovePlayer(player.y, obstacle.y) && commands.contains(up)) {
-			return up;
+	var moveTowardPlayer = function (player, target, commands) {
+		if (isObstacleAbovePlayer(player.y, target.y) && commands.contains(config.commands.up)) {
+			return config.commands.up;
+		} else if (isObstacleBelowPlayer(player.y, target.y) && commands.contains(config.commands.down)) {
+			return config.commands.down;
+		} else if (isObstacleToTheLeftOfPlayer(player.x, target.x) && commands.contains(config.commands.left)) {
+			return config.commands.left;
+		} else if (isObstacleToTheRightOfPlayer(player.x, target.x) && commands.contains(config.commands.right)) {
+			return config.commands.right;
+		} else {
+			return getRandomMove(commands);
 		}
-		if (isObstacleBelowPlayer(player.y, obstacle.y) && commands.contains(down)) {
-			return down;
-		}
-		if (isObstacleToTheLeftOfPlayer(player.x, obstacle.x) && commands.contains(left)) {
-			return left;
-		}
-		if (isObstacleToTheRightOfPlayer(player.x, obstacle.x) && commands.contains(right)) {
-			return right;
-		}
-
-		return commands.sort(getRandomSort)[0];
 	};
 
 	var isObstacleToTheRightOfPlayer = function (x, obstacleX) {
@@ -161,15 +156,16 @@
 		return blocked.contains(direction);
 	};
 
-	var getRandomSort = function (a, b) {
-		return (Math.floor(Math.random() * 3) % 3) - 1;
+	var getRandomMove = function (commands) {
+		var command;
+		do {
+			command = Math.floor(Math.random() * config.commands.look);
+		} while (!commands.contains(command));
+
+		return command;
 	};
 
 	Array.prototype.first = function (selector) {
-		if (typeof selector !== 'function') {
-			return undefined;
-		}
-
 		for (var i = 0; i < this.length; i++) {
 			if (i in this && selector(this[i])) return this[i];
 		}

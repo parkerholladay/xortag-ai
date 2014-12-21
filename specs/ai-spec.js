@@ -334,6 +334,37 @@ describe('get next move', function() {
 
             });
 
+            describe('when player is near the edge of the map', function () {
+                it('should not move toward the border', function () {
+                    player.x = 1;
+                    player.y = 2;
+                    player2.x = 5;
+                    player2.y = 2;
+                    for (var i = 0; i < 10; i++) {
+                        expect(ai.getNextMove(player)).not.toBe(left);
+                    }
+                });
+
+            });
+
+            it('should tag the player', function () {
+                player2.x = 9;
+                player2.y = 8;
+                expect(ai.getNextMove(player)).toBe(up);
+
+                player2.x = 9;
+                player2.y = 10;
+                expect(ai.getNextMove(player)).toBe(down);
+
+                player2.x = 8;
+                player2.y = 9;
+                expect(ai.getNextMove(player)).toBe(left);
+
+                player2.x = 10;
+                player2.y = 9;
+                expect(ai.getNextMove(player)).toBe(right);
+            });
+
         });
 
     });
