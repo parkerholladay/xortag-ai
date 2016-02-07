@@ -45,8 +45,10 @@
 			var player = JSON.parse(data);
 			if (player.isIt && !_player.isIt) {
 				console.log('You have been tagged -- you are it');
+    			console.log('');
 			} else if (_player.isIt && !player.isIt) {
 				console.log('You tagged another player -- you are no longer it');
+                console.log('');
 			}
 
             _player = player;

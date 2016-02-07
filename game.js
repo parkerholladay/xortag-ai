@@ -31,7 +31,7 @@
     var executeCommand = function (command, player, callback) {
         setTimeout(function () {
             client.request(command, player.id, handleResponse(callback));
-        }, 1000);
+        }, 1001);
     };
 
     var handleResponse = function (callback) {
