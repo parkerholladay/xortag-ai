@@ -71,7 +71,6 @@
 			return config.commands[key];
 		});
 
-        console.log('object: ', object, 'blocked: ', blocked)
         if (!object)
             object = {};
 
